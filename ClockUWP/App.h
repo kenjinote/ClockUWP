@@ -36,11 +36,16 @@ namespace App1
 		void OnOrientationChanged(Windows::Graphics::Display::DisplayInformation^ sender, Platform::Object^ args);
 		void OnDisplayContentsInvalidated(Windows::Graphics::Display::DisplayInformation^ sender, Platform::Object^ args);
 
+		void SetTitleBarColor();
+		void OnColorValuesChanged(Windows::UI::ViewManagement::UISettings^ sender, Platform::Object^ args);
+
 	private:
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;
 		std::unique_ptr<ClockUWPMain> m_main;
 		bool m_windowClosed;
 		bool m_windowVisible;
+		Windows::UI::ViewManagement::UISettings^ m_settings;
+		Windows::UI::ViewManagement::ApplicationViewTitleBar^ m_titlebar;
 	};
 }
 

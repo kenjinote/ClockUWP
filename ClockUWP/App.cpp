@@ -30,7 +30,9 @@ IFrameworkView^ Direct3DApplicationSource::CreateView()
 
 App::App() :
 	m_windowClosed(false),
-	m_windowVisible(true)
+	m_windowVisible(true),
+	m_settings(nullptr),
+	m_titlebar(nullptr)
 {
 }
 
@@ -51,6 +53,7 @@ void App::Initialize(CoreApplicationView^ applicationView)
 	//この時点では、デバイスにアクセスできます。
 	// デバイスに依存するリソースを作成できます。
 	m_deviceResources = std::make_shared<DX::DeviceResources>();
+	m_settings = ref new Windows::UI::ViewManagement::UISettings();
 }
 
 //CoreWindow オブジェクトが作成 (または再作成) されるときに呼び出されます。
@@ -64,6 +67,10 @@ void App::SetWindow(CoreWindow^ window)
 
 	window->Closed += 
 		ref new TypedEventHandler<CoreWindow^, CoreWindowEventArgs^>(this, &App::OnWindowClosed);
+
+	if (m_settings != nullptr) {
+		m_settings->ColorValuesChanged += ref new TypedEventHandler<Windows::UI::ViewManagement::UISettings^, Platform::Object^>(this, &App::OnColorValuesChanged);
+	}
 
 	DisplayInformation^ currentDisplayInformation = DisplayInformation::GetForCurrentView();
 
@@ -124,13 +131,9 @@ void App::OnActivated(CoreApplicationView^ applicationView, IActivatedEventArgs^
 {
 	// Run() は CoreWindow がアクティブ化されるまで起動されません。
 	CoreWindow::GetForCurrentThread()->Activate();
+	m_titlebar = Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->TitleBar;
 	CoreApplication::GetCurrentView()->TitleBar->ExtendViewIntoTitleBar = true;
-
-	Windows::UI::ViewManagement::ApplicationViewTitleBar^ titlebar = Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->TitleBar;
-
-	Windows::UI::Color color = Theme::GetThemeColor(Windows::UI::ViewManagement::UIColorType::Accent);
-	titlebar->ButtonBackgroundColor = color;
-	titlebar->ButtonInactiveBackgroundColor = color;
+	SetTitleBarColor();
 }
 
 void App::OnSuspending(Platform::Object^ sender, SuspendingEventArgs^ args)
@@ -196,4 +199,30 @@ void App::OnOrientationChanged(DisplayInformation^ sender, Object^ args)
 void App::OnDisplayContentsInvalidated(DisplayInformation^ sender, Object^ args)
 {
 	m_deviceResources->ValidateDevice();
+}
+
+void App::OnColorValuesChanged(Windows::UI::ViewManagement::UISettings^ sender, Platform::Object^ args)
+{
+	SetTitleBarColor();
+}
+
+void App::SetTitleBarColor()
+{
+	if (m_titlebar != nullptr) {
+		Windows::UI::Color colorForeground = Theme::GetThemeColor(Windows::UI::ViewManagement::UIColorType::Foreground);
+
+		m_titlebar->ButtonForegroundColor = colorForeground;
+		m_titlebar->ButtonHoverForegroundColor = colorForeground;
+		m_titlebar->ButtonInactiveForegroundColor = colorForeground;
+		m_titlebar->ButtonPressedForegroundColor = colorForeground;
+		m_titlebar->ForegroundColor = colorForeground;
+		m_titlebar->InactiveForegroundColor = colorForeground;
+
+		m_titlebar->BackgroundColor = Windows::UI::Colors::Transparent;
+		m_titlebar->ButtonBackgroundColor = Windows::UI::Colors::Transparent;
+		m_titlebar->ButtonHoverBackgroundColor = Windows::UI::Colors::Transparent;
+		m_titlebar->ButtonInactiveBackgroundColor = Windows::UI::Colors::Transparent;
+		m_titlebar->ButtonPressedBackgroundColor = Windows::UI::Colors::Transparent;
+		m_titlebar->InactiveBackgroundColor = Windows::UI::Colors::Transparent;
+	}
 }
